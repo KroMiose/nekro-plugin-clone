@@ -143,27 +143,34 @@ config: PresetCloneConfig = plugin.get_config(PresetCloneConfig)
 # 生成人设的提示词模板
 PRESET_GENERATION_PROMPT = """你是一个专业的心理分析师和角色设定专家,擅长从聊天记录中提取真实人物的性格特征、语言风格和行为模式,创建用于AI角色扮演的人物设定。
 
-现在你需要分析以下用户的历史聊天记录,创建一份完整的**人物角色设定**,让AI能够真实地扮演这个人。
+# ⚠️ 重要：你要分析的目标人物
 
-## 目标用户信息
-- 昵称: {nickname}
-- 用户ID: {user_id}
-- 目标用户消息数量: {target_message_count}
-- 总消息数量(含上下文): {total_message_count}
+**昵称**: {nickname}
+**用户ID**: {user_id}
+
+请牢记：你需要分析的**唯一目标**是昵称为"{nickname}"、用户ID为"{user_id}"的这个人。
+在下面的聊天记录中，所有标记为【目标】的消息都是这个人发送的。
+**只分析【目标】标记的消息，其他人的消息仅作为理解对话场景的辅助信息！**
+
+## 数据统计
+- 目标用户({nickname})的消息数量: {target_message_count}
+- 总消息数量(含其他人): {total_message_count}
 - 时间跨度: {time_span}
 
-## 历史聊天记录说明
-下面的聊天记录中:
-- 【目标】标记的是要分析的目标人物
-- 其他消息是对话上下文,用于理解目标人物的互动场景和反应模式
-- **重点分析目标人物的发言行为**,上下文仅作为理解其行为逻辑的辅助信息
-
 ## 历史聊天记录
+
+**阅读说明**：
+1. 标记为【目标】的消息 = 你要分析的人({nickname})发送的
+2. 没有【目标】标记的消息 = 其他人发送的，仅供参考上下文
+3. **你必须只基于【目标】标记的消息来生成人设，不要混入其他人的特征**
+
 {chat_history}
 
 ## 任务要求
 
-请**重点关注【目标】用户的发言**,深入分析这个**真实人物**的特点:
+**再次确认**：你要分析的是昵称"{nickname}"(用户ID: {user_id})的聊天特征。
+
+现在，请**只关注上面标记为【目标】的消息**，深入分析这个**真实人物**的特点:
 
 1. **性格特征**: 从消息中体现出的真实性格(如：开朗、内敛、幽默、严谨、直率、温柔等)
 2. **语言风格**: 真实的说话方式、用词习惯、语气特点(如：口语化、文雅、网络梗、方言、表情符号使用等)
@@ -212,7 +219,20 @@ PRESET_GENERATION_PROMPT = """你是一个专业的心理分析师和角色设�
 - ✅ **具体明确**: 给出具体的说话方式指导,例如: "你习惯用短句回复,经常分多条发送" 或 "你喜欢一次性发完整段落,逻辑清晰"
 - ✅ **包含典型表达**: 引用该人物的典型用词、口头禅作为例子
 
-现在开始分析并生成**人物角色设定**。记住:这是在创建一个真实人物的扮演设定,不是AI的使用说明！"""
+## ⚠️ 最后确认（必读）
+
+在开始生成之前，请再次确认：
+1. ✅ 我要分析的人是：**{nickname}** (用户ID: {user_id})
+2. ✅ 我只看【目标】标记的消息
+3. ✅ 我不会把其他人的特征混入人设 (其他人的消息仅作为理解对话场景的辅助信息！)
+4. ✅ 生成的name字段必须是或接近"{nickname}"
+
+如果你清楚了上述要点，现在开始分析并生成**{nickname}的人物角色设定**。
+
+记住：
+- 这是在创建一个真实人物的扮演设定，不是AI的使用说明
+- 你分析的对象是且仅是昵称为"{nickname}"的这个人
+- 如果你不确定某个特征是否属于{nickname}，请不要包含它"""
 
 
 async def collect_user_messages_with_context(
@@ -558,15 +578,41 @@ async def generate_preset_with_ai(
     # 解析AI返回的JSON
     response_text = llm_response.response_content.strip()
 
-    # 尝试提取JSON内容(可能被markdown代码块包裹)
-    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response_text, re.DOTALL)
-    json_str = json_match.group(1) if json_match else response_text
+    # 清理和提取JSON内容
+    json_str = response_text
 
+    # 1. 尝试提取markdown代码块中的JSON (```json 或 ```)
+    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response_text, re.DOTALL)
+    if json_match:
+        json_str = json_match.group(1)
+    else:
+        # 2. 如果没有代码块，尝试查找第一个 { 到最后一个 }
+        start = response_text.find("{")
+        end = response_text.rfind("}")
+        if start != -1 and end != -1 and start < end:
+            json_str = response_text[start : end + 1]
+
+    # 3. 清理可能的多余空白和换行
+    json_str = json_str.strip()
+
+    # 4. 尝试解析
     try:
-        return json.loads(json_str)
+        preset_data = json.loads(json_str)
     except json.JSONDecodeError as e:
-        core.logger.error(f"解析AI返回的JSON失败: {e}\n原始内容:\n{response_text}")
+        core.logger.error(
+            f"解析AI返回的JSON失败: {e}\n"
+            f"提取的JSON字符串:\n{json_str}\n"
+            f"原始响应内容:\n{response_text}",
+        )
         raise ValueError("AI返回的格式不正确,无法解析人设数据") from e
+
+    # 5. 验证必需字段
+    required_fields = ["name", "title", "description", "content", "tags"]
+    missing_fields = [field for field in required_fields if field not in preset_data]
+    if missing_fields:
+        raise ValueError(f"AI返回的数据缺少必需字段: {', '.join(missing_fields)}")
+
+    return preset_data
 
 
 @on_command("preset-clone", aliases={"preset_clone"}, priority=5, block=True).handle()
