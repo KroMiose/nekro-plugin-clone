@@ -208,6 +208,8 @@ Below is the chat history of The Target (`{nickname}`):
 ## Task Requirements
 Final Confirmation: Your analysis is focused on the chat characteristics of the user with nickname "{nickname}" (User ID: "{user_id}").
 
+**数据量预判：** 如果目标用户的有效消息（`[我]` 标记的消息）总数少于20条，信息可能不足以进行深入分析。在这种情况下，你的分析应更加谨慎，并在 `description` 字段的末尾标注“(信息量较少，分析基于有限数据)”。同时，集中分析最明显的语言习惯和性格特征，避免过度推断
+
 Now, direct your focus only to the messages marked with [我] (nickname: "{nickname}", User ID: "{user_id}") and perform an in-depth analysis of this real person's traits:
 
 1.  **Personality Traits**: The authentic personality reflected in the messages (e.g., cheerful, introverted, humorous, rigorous, direct, gentle). **Do not just use these single words; provide a more detailed description.**
@@ -215,11 +217,12 @@ Now, direct your focus only to the messages marked with [我] (nickname: "{nickn
 3.  **Interests and Hobbies**: Frequently discussed topics, areas of focus, and subjects they are knowledgeable about.
 4.  **Behavioral Patterns**: Interaction style, response habits, thought processes, and methods of expressing emotion.
 5.  **Unique Characteristics**: Distinctive catchphrases, signature expressions, or special linguistic habits.
-6.  **Detail Requirement**: You must describe every characteristic you analyze in extensive detail. Do not just use adjectives; provide specific, descriptive explanations. For example: "You prefer to reply with short sentences, often sent as multiple messages in a row," or "You like to send a complete, logically structured paragraph all at once." **The final persona content must be at least 800-2000 words.**
+6.  **Core Identity / Worldview**: Based on the dialogue, summarize the person's core self-perception, social role (e.g., an optimistic student, a cynical office worker, a current affairs commentator), and their fundamental perspectives and values.
+7.  **Detail Requirement**: You must describe every characteristic you analyze in extensive detail. Do not just use adjectives; provide specific, descriptive explanations. For example: "You prefer to reply with short sentences, often sent as multiple messages in a row," or "You like to send a complete, logically structured paragraph all at once." **The final persona content must be at least 800-2000 words.**
 
 ## Required Return Format
 
-You must strictly return the result in the following JSON format without any additional text or explanations 如没有额外要求请输出中文标签和内容:
+You must strictly return the result in the following JSON format without any additional text or explanations (use Chinese labels and content unless otherwise specified):
 
 ```json
 {{
@@ -227,13 +230,13 @@ You must strictly return the result in the following JSON format without any add
   "title": "The display title for the persona. Example: {nickname}",
   "description": "A one-sentence summary of the character's core features (50-100 characters).",
   "content": "A detailed character profile (300-800 words). Use the second person ('You are...') to describe this real person's characteristics.",
-  "tags": "Relevant tags, separated by commas. Example: Clone, Humorous, Techie"
+  "tags": "【优化】Based on the analysis, generate 3-5 tags that best represent their core characteristics, covering dimensions like personality, interests, and linguistic style. Example: 吐槽役, 游戏爱好者, 细节控, 互联网黑话"
 }}
 ```
 
 ---
 
-## ⚠️ ATTENTION: content 内容编写要求（重要！）
+## ⚠️ ATTENTION: `content` (内容) Writing Requirements (Important!)
 
 ### Incorrect Examples (AVOID):
 - ❌ "You are an AI that needs to role-play as {nickname}"
@@ -247,6 +250,7 @@ You must strictly return the result in the following JSON format without any add
 - ✅ **Emphasize authenticity**: Extract features based *only* on the actual messages, without fabrication.
 - ✅ **Be specific and clear**: Provide concrete guidance on their manner of speaking, e.g., "You tend to reply with short sentences, often sending them as multiple consecutive messages," or "You prefer to send a single, complete paragraph with clear logic."
 - ✅ **Include typical expressions**: Quote the person's characteristic words or catchphrases as examples.
+- ✅ **Stylistic Consistency**: When writing the `content`, try to adopt a tone that is close to the target user's linguistic style. For instance, if the user is witty and humorous, your description can be more light-hearted; if the user is formal and rigorous, the description should be more objective and structured.
 
 ## ⚠️ Final Checklist (Must Read)
 
@@ -262,7 +266,7 @@ Remember:
 - This is for creating a role-playing persona of a real person, not an instruction manual for an AI.
 - The subject of your analysis is exclusively the person with the nickname "{nickname}".
 - If you are uncertain whether a specific trait belongs to {nickname}, do not include it.
-- 如没有特别要求,请输出中文标签和内容
+- Use Chinese labels and content unless otherwise specified.
 """
 
 async def collect_user_messages_with_context(
