@@ -45,7 +45,7 @@ Now, direct your focus only to the messages marked with [我] (nickname: "{nickn
 4.  **Behavioral Patterns**: Interaction style, response habits, thought processes, and methods of expressing emotion.
 5.  **Unique Characteristics**: Distinctive catchphrases, signature expressions, or special linguistic habits.
 6.  **Core Identity / Worldview**: Based on the dialogue, summarize the person's core self-perception, social role (e.g., an optimistic student, a cynical office worker, a current affairs commentator), and their fundamental perspectives and values.
-7.  **Detail Requirement**: You must describe every characteristic you analyze in extensive detail. Do not just use adjectives; provide specific, descriptive explanations. For example: "You prefer to reply with short sentences, often sent as multiple messages in a row," or "You like to send a complete, logically structured paragraph all at once." **The final persona content must be at least 800-2000 words.**
+7.  **Detail Requirement**: You must describe every characteristic you analyze in extensive detail. Do not just use adjectives; provide specific, descriptive explanations. For example: "You prefer to reply with short sentences, often sent as multiple messages in a row," or "You like to send a complete, logically structured paragraph all at once." **The final persona content must be at least 2000-5000 words.**
 
 ## Required Return Format
 
