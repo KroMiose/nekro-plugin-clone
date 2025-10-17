@@ -1086,7 +1086,7 @@ async def generate_preset_with_ai(
             max_length=config.MAX_MESSAGE_LENGTH,
         )
 
-    core.logger.info(f"=== 克隆分析上下文 (长度: {len(chat_history)}) ===\n{chat_history}\n=== End Context ===")
+    core.logger.info(f"克隆群友插件：分析上下文 (长度: {len(chat_history)}) \n{chat_history}\n")
 
     # 计算时间跨度
     if len(flat_messages) > 1:
@@ -1108,7 +1108,7 @@ async def generate_preset_with_ai(
         chat_history=chat_history,
     )
     # 新增：打印完整请求内容到日志
-    core.logger.info(f"=== 发送给AI的完整请求 (长度: {len(prompt)}) ===\n{prompt}\n=== End Request ===")
+    core.logger.debug(f"克隆群友插件：完整请求 (长度: {len(prompt)}) \n{prompt}\n")
     
     # 获取模型组配置
     model_group = core.config.MODEL_GROUPS.get(model_group_name)
