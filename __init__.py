@@ -895,7 +895,7 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         await finish_with(matcher, message="用户ID格式不正确,请使用QQ号或@用户")
     
     # 发送处理提示（通过去重确保只发送一次）
-    await matcher.send(f"开始克隆用户 {target_user_id} 的人设,请稍候...")
+    await matcher.send(f"开始克隆用户 {target_user_id} 的人设喵...")
     
     # 业务逻辑处理
     try:
@@ -938,6 +938,9 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         await matcher.send(
             f"已收集到目标用户 {target_message_count} 条消息(含上下文共 {len(messages)} 条),正在分析中...",
         )
+        await matcher.send(
+            f"正在提取词元...",
+        )
         
         # 分段对话收集（按时间窗）
         dialogs = await collect_user_dialogs_with_context(
@@ -951,8 +954,13 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         if not dialogs:
             core.logger.info("未生成对话分段，改用平铺消息格式化")
             dialogs = None
-        
+        await matcher.send(
+            f"正在分析元数据...",
+        )
         # 2. 使用AI生成人设
+        await matcher.send(
+            f"正在分解重组（耗时较长请稍后）...",
+        )
         preset_data = await generate_preset_with_ai(
             user_id=target_user_id,
             nickname=user_nickname,
@@ -960,14 +968,14 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
             model_group_name=config.USE_CLONE_MODEL_GROUP,
             dialogs=dialogs,
         )
-    
+        
         # 3. 获取用户头像
         avatar_base64 = await get_user_avatar_base64(target_user_id, chat_key)
         if not avatar_base64:
             # 使用默认头像
             core.logger.warning("获取用户头像失败,使用默认头像")
             avatar_base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-    
+
         # 4. 添加标签
         tags = preset_data.get("tags", "")
         if config.AUTO_ADD_TAG and config.AUTO_ADD_TAG not in tags:
@@ -1388,7 +1396,7 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         await finish_with(matcher, message="用户ID格式不正确,请使用QQ号或@用户")
     
     # 发送处理提示（通过去重确保只发送一次）
-    await matcher.send(f"开始克隆用户 {target_user_id} 的人设,请稍候...")
+    await matcher.send(f"开始克隆用户 {target_user_id} 的人设喵...")
     
     # 业务逻辑处理
     try:
@@ -1429,7 +1437,7 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         user_nickname = messages[-1].sender_nickname
     
         await matcher.send(
-            f"已收集到目标用户 {target_message_count} 条消息(含上下文共 {len(messages)} 条),正在分析中...",
+            f"已收集到用户 {target_user_id} 的 {target_message_count} 条历史消息(含上下文共 {len(messages)} 条),正在分析中...",
         )
         
         # 分段对话收集（按时间窗）
