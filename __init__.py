@@ -162,6 +162,11 @@ class PresetCloneConfig(ConfigBase):
         title="自动添加标签",
         description="克隆生成的人设自动添加的标签",
     )
+    ENABLE_PROMPT_DEBUG: bool = Field(
+        default=False,
+        title="启用提示词Debug日志",
+        description="开启后将把发送给AI的完整提示词打印到日志（可能很长）",
+    )
 
 
 # 获取配置
@@ -792,8 +797,9 @@ async def generate_preset_with_ai(
         time_span=time_span,
         chat_history=chat_history,
     )
-    # 新增：打印完整请求内容到日志
-    core.logger.debug(f"完整请求： (长度: {len(prompt)}) \n{prompt}\n")
+    # 新增：打印完整请求内容到日志（受配置开关控制）
+    if config.ENABLE_PROMPT_DEBUG:
+        core.logger.info(f"完整请求： (长度: {len(prompt)}) \n{prompt}\n")
     
     # 获取模型组配置
     model_group = core.config.MODEL_GROUPS.get(model_group_name)
@@ -931,10 +937,12 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         core.logger.info(
             f"收集完成: 目标用户 {target_message_count} 条, 总消息(含上下文) {len(messages)} 条",
         )
-    
-        # 获取用户昵称(使用最新的昵称)
-        user_nickname = messages[-1].sender_nickname
-    
+
+        try:
+            user_nickname = next(m.sender_nickname for m in reversed(messages) if m.platform_userid == target_user_id and m.sender_nickname)
+        except StopIteration:
+            user_nickname = str(target_user_id)
+
         await matcher.send(
             f"已收集到目标用户 {target_message_count} 条消息(含上下文共 {len(messages)} 条),正在分析中...",
         )
@@ -1293,8 +1301,9 @@ async def generate_preset_with_ai(
         time_span=time_span,
         chat_history=chat_history,
     )
-    # 新增：打印完整请求内容到日志
-    core.logger.debug(f"克隆群友插件：完整请求 (长度: {len(prompt)}) \n{prompt}\n")
+    # 新增：打印完整请求内容到日志（受配置开关控制）
+    if config.ENABLE_PROMPT_DEBUG:
+        core.logger.info(f"完整请求： (长度: {len(prompt)}) \n{prompt}\n")
     
     # 获取模型组配置
     model_group = core.config.MODEL_GROUPS.get(model_group_name)
@@ -1432,10 +1441,12 @@ async def _(matcher: Matcher, event: MessageEvent, bot: Bot, arg: Message = Comm
         core.logger.info(
             f"收集完成: 目标用户 {target_message_count} 条, 总消息(含上下文) {len(messages)} 条",
         )
-    
-        # 获取用户昵称(使用最新的昵称)
-        user_nickname = messages[-1].sender_nickname
-    
+
+        try:
+            user_nickname = next(m.sender_nickname for m in reversed(messages) if m.platform_userid == target_user_id and m.sender_nickname)
+        except StopIteration:
+            user_nickname = str(target_user_id)
+
         await matcher.send(
             f"已收集到用户 {target_user_id} 的 {target_message_count} 条历史消息(含上下文共 {len(messages)} 条),正在分析中...",
         )
