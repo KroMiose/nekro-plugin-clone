@@ -407,7 +407,7 @@ You must strictly return the result in the following JSON format without any add
   "title": "The display title for the persona. Example: {nickname}",
   "description": "A one-sentence summary of the character's core features (50-100 characters).",
   "content": "A detailed character profile (300-800 words). Use the second person ('You are...') to describe this real person's characteristics.",
-  "tags": "【优化】Based on the analysis, generate 3-5 tags that best represent their core characteristics, covering dimensions like personality, interests, and linguistic style. Example: 吐槽役, 游戏爱好者, 细节控, 互联网黑话"
+  "tags": "Based on the analysis, generate 3-5 tags that best represent their core characteristics, covering dimensions like personality, interests, and linguistic style. Example: 吐槽役, 游戏爱好者, 细节控, 互联网黑话"
 }}
 ```
 
