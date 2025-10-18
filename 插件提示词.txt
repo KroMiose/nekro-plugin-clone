@@ -271,3 +271,4 @@ Remember:
 - The subject of your analysis is exclusively the person with the nickname "{nickname}".
 - If you are uncertain whether a specific trait belongs to {nickname}, do not include it.
 - Use Chinese labels and content unless otherwise specified.
+- 你输出的最终提示词应为中文，且必须包含相似的优秀案例并通过一定手段限制AI回复的内容长度和段数（如：限制回复为100字以内,每次回复最多发三条消息等）
